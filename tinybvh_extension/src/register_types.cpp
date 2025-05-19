@@ -11,7 +11,7 @@ void initialize_tinybvh_extension(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
-    ClassDB::register_class<BVHTLAS>();
+    GDREGISTER_RUNTIME_CLASS(BVHTLAS);
 }
 
 void uninitialize_tinybvh_extension(ModuleInitializationLevel p_level) {
@@ -20,7 +20,7 @@ void uninitialize_tinybvh_extension(ModuleInitializationLevel p_level) {
 
 extern "C" {
 GDExtensionBool GDE_EXPORT tinybvh_extension_init(GDExtensionInterfaceGetProcAddress p_interface, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_init) {
-    GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_init);
+    godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_init);
 
     init_obj.register_initializer(initialize_tinybvh_extension);
     init_obj.register_terminator(uninitialize_tinybvh_extension);
