@@ -81,7 +81,7 @@ THE SOFTWARE.
 // Thierry Cantenot: user-defined alloc & free
 // David Peicho: slices & Rust bindings, API advice
 // Aytek Aman: C++11 threading implementation
-
+#pragma once
 #ifndef TINY_BVH_H_
 #define TINY_BVH_H_
 
@@ -819,7 +819,7 @@ public:
 	void Build( const bvhvec4* vertices, const uint32_t* indices, const uint32_t primCount );
 	void Build( const bvhvec4slice& vertices, const uint32_t* indices, const uint32_t primCount );
 	void Build( BLASInstance* instances, const uint32_t instCount, BVHBase** blasses, const uint32_t blasCount );
-	void Build( void (*customGetAABB)(const unsigned, bvhvec3&, bvhvec3&), const uint32_t primCount );
+	void Build( void (*customGetAABB)(const unsigned, bvhvec3&, bvhvec3&,void* user_ptr), const uint32_t primCount );
 	void BuildHQ( const bvhvec4* vertices, const uint32_t primCount );
 	void BuildHQ( const bvhvec4slice& vertices );
 	void BuildHQ( const bvhvec4* vertices, const uint32_t* indices, const uint32_t primCount );
@@ -902,6 +902,7 @@ public:
 	// Custom geometry intersection callback
 	bool (*customIntersect)(Ray&, const unsigned) = 0;
 	bool (*customIsOccluded)(const Ray&, const unsigned) = 0;
+	void* user_ptr = nullptr;
 };
 
 #ifdef DOUBLE_PRECISION_SUPPORT
@@ -1940,7 +1941,7 @@ void BVH::Build( const bvhvec4slice& vertices, const uint32_t* indices, uint32_t
 	Build();
 }
 
-void BVH::Build( void (*customGetAABB)(const unsigned, bvhvec3&, bvhvec3&), const uint32_t primCount )
+void BVH::Build( void (*customGetAABB)(const unsigned, bvhvec3&, bvhvec3&, void* user_ptr), const uint32_t primCount )
 {
 	BVH_FATAL_ERROR_IF( primCount == 0, "BVH::Build( void (*customGetAABB)( .. ), instCount ), instCount == 0." );
 	triCount = idxCount = primCount;
@@ -1961,7 +1962,7 @@ void BVH::Build( void (*customGetAABB)(const unsigned, bvhvec3&, bvhvec3&), cons
 	root.leftFirst = 0, root.triCount = primCount, root.aabbMin = bvhvec3( BVH_FAR ), root.aabbMax = bvhvec3( -BVH_FAR );
 	for (uint32_t i = 0; i < primCount; i++)
 	{
-		customGetAABB( i, fragment[i].bmin, fragment[i].bmax );
+		customGetAABB( i, fragment[i].bmin, fragment[i].bmax, user_ptr);
 		fragment[i].primIdx = i, fragment[i].clipped = 0, primIdx[i] = i;
 		root.aabbMin = tinybvh_min( root.aabbMin, fragment[i].bmin );
 		root.aabbMax = tinybvh_max( root.aabbMax, fragment[i].bmax );
@@ -4567,7 +4568,7 @@ void BVH4_GPU::ConvertFrom( const MBVH<4>& original, bool compact )
 // This code replicates how traversal on GPU happens.
 #define SWAP(A,B,C,D) tmp=A,A=B,B=tmp,tmp2=C,C=D,D=tmp2;
 struct uchar4 { uint8_t x, y, z, w; };
-static uchar4 as_uchar4( const float v ) { union { float t; uchar4 t4; }; t = v; return t4; }
+static uchar4 float_to_uchar4( const float v ) { union { float t; uchar4 t4; }; t = v; return t4; }
 static uint32_t as_uint( const float v ) { return *(uint32_t*)&v; }
 int32_t BVH4_GPU::Intersect( Ray& ray ) const
 {
@@ -4584,8 +4585,8 @@ int32_t BVH4_GPU::Intersect( Ray& ray ) const
 		// extract aabb
 		const bvhvec3 bmin = data0, extent = data1; // pre-scaled by 1/255
 		// reconstruct conservative child aabbs
-		const uchar4 d0 = as_uchar4( data0.w ), d1 = as_uchar4( data1.w ), d2 = as_uchar4( data2.x );
-		const uchar4 d3 = as_uchar4( data2.y ), d4 = as_uchar4( data2.z ), d5 = as_uchar4( data2.w );
+		const uchar4 d0 = float_to_uchar4( data0.w ), d1 = float_to_uchar4( data1.w ), d2 = float_to_uchar4( data2.x );
+		const uchar4 d3 = float_to_uchar4( data2.y ), d4 = float_to_uchar4( data2.z ), d5 = float_to_uchar4( data2.w );
 		const bvhvec3 c0min = bmin + extent * bvhvec3( d0.x, d2.x, d4.x ), c0max = bmin + extent * bvhvec3( d1.x, d3.x, d5.x );
 		const bvhvec3 c1min = bmin + extent * bvhvec3( d0.y, d2.y, d4.y ), c1max = bmin + extent * bvhvec3( d1.y, d3.y, d5.y );
 		const bvhvec3 c2min = bmin + extent * bvhvec3( d0.z, d2.z, d4.z ), c2max = bmin + extent * bvhvec3( d1.z, d3.z, d5.z );
