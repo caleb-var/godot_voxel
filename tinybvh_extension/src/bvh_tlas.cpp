@@ -1,96 +1,41 @@
 #include "bvh_tlas.h"
+#include <godot_cpp/core/class_db.hpp>
 
-BvhTlas::BvhTlas() {}
+using namespace godot;
 
-BvhTlas::~BvhTlas() {}
-
-void BvhTlas::build(Array aabb_array) {
-    int count = aabb_array.size();
-    aabbs.resize(count);
-
-    for (int i = 0; i < count; ++i) {
-        Dictionary dict = aabb_array[i];
-        Vector3 min = dict["min"];
-        Vector3 max = dict["max"];
-        for (int j = 0; j < 3; ++j) {
-            aabbs[i].min[j] = min[j];
-            aabbs[i].max[j] = max[j];
-        }
-    }
-
-    // nodes count = 2*N - 1
-    nodes.resize(aabbs.size() * 2 - 1);
-
-    tinybvh::build(
-        aabbs.data(), sizeof(SimpleAabb), aabbs.size(),
-        nodes.data(), sizeof(tinybvh::BVHNode),
-        [](const void* aabb, int axis) -> float {
-            const SimpleAabb* a = reinterpret_cast<const SimpleAabb*>(aabb);
-            return 0.5f * (a->min[axis] + a->max[axis]);
-        },
-        [](const void* aabb, int axis) -> float {
-            const SimpleAabb* a = reinterpret_cast<const SimpleAabb*>(aabb);
-            return a->min[axis];
-        },
-        [](const void* aabb, int axis) -> float {
-            const SimpleAabb* a = reinterpret_cast<const SimpleAabb*>(aabb);
-            return a->max[axis];
-        }
-    );
+void BVHTLAS::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("clear"), &BVHTLAS::clear);
+    ClassDB::bind_method(D_METHOD("add_aabb", "min", "max"), &BVHTLAS::add_aabb);
+    ClassDB::bind_method(D_METHOD("build"), &BVHTLAS::build);
+    ClassDB::bind_method(D_METHOD("refit"), &BVHTLAS::refit);
+    ClassDB::bind_method(D_METHOD("get_node_count"), &BVHTLAS::get_node_count);
 }
 
-void BvhTlas::refit(Array aabb_array) {
-    // Update AABBs only, then refit
-    int count = aabb_array.size();
-    if (count != int(aabbs.size()))
-        build(aabb_array); // Fallback to rebuild
-
-    for (int i = 0; i < count; ++i) {
-        Dictionary dict = aabb_array[i];
-        Vector3 min = dict["min"];
-        Vector3 max = dict["max"];
-        for (int j = 0; j < 3; ++j) {
-            aabbs[i].min[j] = min[j];
-            aabbs[i].max[j] = max[j];
-        }
-    }
-    tinybvh::refit(
-        aabbs.data(), sizeof(SimpleAabb), aabbs.size(),
-        nodes.data(), sizeof(tinybvh::BVHNode),
-        [](const void* aabb, int axis) -> float {
-            const SimpleAabb* a = reinterpret_cast<const SimpleAabb*>(aabb);
-            return 0.5f * (a->min[axis] + a->max[axis]);
-        },
-        [](const void* aabb, int axis) -> float {
-            const SimpleAabb* a = reinterpret_cast<const SimpleAabb*>(aabb);
-            return a->min[axis];
-        },
-        [](const void* aabb, int axis) -> float {
-            const SimpleAabb* a = reinterpret_cast<const SimpleAabb*>(aabb);
-            return a->max[axis];
-        }
-    );
+void BVHTLAS::clear() {
+    mins.clear();
+    maxs.clear();
+    bvh = {};
 }
 
-PackedFloat32Array BvhTlas::get_nodes() const {
-    PackedFloat32Array out;
-    out.resize(nodes.size() * 8); // Each node: 2x float3 (min, max), 2x int (left, right/prim)
-    int i = 0;
-    for (const auto &n : nodes) {
-        out.set(i++, n.bmin[0]);
-        out.set(i++, n.bmin[1]);
-        out.set(i++, n.bmin[2]);
-        out.set(i++, n.bmax[0]);
-        out.set(i++, n.bmax[1]);
-        out.set(i++, n.bmax[2]);
-        out.set(i++, float(n.left));   // These are ints, can reinterpret as float if needed
-        out.set(i++, float(n.right));  // (or store as separate buffer if desired)
-    }
-    return out;
+void BVHTLAS::add_aabb(Vector3 min, Vector3 max) {
+    mins.emplace_back(min.x, min.y, min.z);
+    maxs.emplace_back(max.x, max.y, max.z);
 }
 
-void BvhTlas::_bind_methods() {
-    ClassDB::bind_method(D_METHOD("build", "aabb_array"), &BvhTlas::build);
-    ClassDB::bind_method(D_METHOD("refit", "aabb_array"), &BvhTlas::refit);
-    ClassDB::bind_method(D_METHOD("get_nodes"), &BvhTlas::get_nodes);
+void BVHTLAS::get_aabb_callback(unsigned int index, bvhvec3* out_min, bvhvec3* out_max, void* user_ptr) {
+    auto* self = static_cast<BVHTLAS*>(user_ptr);
+    *out_min = self->mins[index];
+    *out_max = self->maxs[index];
+}
+
+void BVHTLAS::build() {
+    tinybvh_build(&bvh, (unsigned int)mins.size(), get_aabb_callback, this);
+}
+
+void BVHTLAS::refit() {
+    tinybvh_refit(&bvh, get_aabb_callback, this);
+}
+
+int BVHTLAS::get_node_count() const {
+    return bvh.node_count;
 }
