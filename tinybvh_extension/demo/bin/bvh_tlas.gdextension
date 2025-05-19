@@ -1,0 +1,3 @@
+[configuration]
+entry_symbol = "tinybvh_extension_init"
+library_path = "res://build/libtinybvh_extension.{platform}.release.{target}.so"
