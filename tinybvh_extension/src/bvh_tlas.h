@@ -20,10 +20,8 @@ class BVHTLAS : public RefCounted {
 public:
     BVHTLAS();
     ~BVHTLAS();
-    void init(uint32_t max_entities = 0); // pre-allocate
 
     int add_aabb(Vector3 p_min, Vector3 p_max);  // returns entity ID
-    void add_aabb_bulk(const AABB *src, size_t count);
     void update_aabb(int id, Vector3 p_min, Vector3 p_max);
     void remove(int id);
     void clear();
@@ -47,11 +45,9 @@ private:
 
     std::vector<float> min_x, min_y, min_z;
     std::vector<float> max_x, max_y, max_z;
-    std::vector<uint8_t> flags;         // bit0 = ALIVE, bit1 = DIRTY
     std::vector<int32_t> freelist;      // stack of free IDs
 
     void _allocate_buffers(uint32_t n);
-    void _mark_dirty(uint32_t id);
     bool _should_rebuild() const;
 };
 

@@ -4,3 +4,7 @@
 [submodule "tinybvh_extension/godot-cpp"]
 	path = tinybvh_extension/godot-cpp
 	url = https://github.com/godotengine/godot-cpp.git
+[submodule "tinybvh_extension/extern/tinybvh"]
+	path = tinybvh_extension/extern/tinybvh
+	url = https://github.com/caleb-var/tinybvh_voxelblas.git
+	branch = main

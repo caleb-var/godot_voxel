@@ -809,6 +809,7 @@ public:
 	int32_t PrimCount( const uint32_t nodeIdx = 0 ) const;
 	void Compact();
 	void Save( const char* fileName );
+	
 	bool Load( const char* fileName, const bvhvec4* vertices, const uint32_t primCount );
 	bool Load( const char* fileName, const bvhvec4* vertices, const uint32_t* indices, const uint32_t primCount );
 	bool Load( const char* fileName, const bvhvec4slice& vertices, const uint32_t* indices = 0, const uint32_t primCount = 0 );
@@ -1308,7 +1309,7 @@ public:
 	uint32_t allocatedBlocks = 0;	// node data and triangles are stored in 16-byte blocks.
 	uint32_t usedBlocks = 0;		// the amount of data actually used.
 };
-
+ 
 // BLASInstance: A TLAS is built over BLAS instances, where a single BLAS can be
 // used with multiple transforms, and multiple BLASses can be combined in a complex
 // scene. The TLAS is built over the world-space AABBs of the BLAS root nodes.
