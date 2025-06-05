@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cxtshwqh4aq17"
+path="res://.godot/imported/ray_cast_base_definition.glsl-2c83d3ae5a2b68b445cdee2997f1f9ed.res"
+
+[deps]
+
+source_file="res://Living project/shaders/ray_cast_base_definition.glsl"
+dest_files=["res://.godot/imported/ray_cast_base_definition.glsl-2c83d3ae5a2b68b445cdee2997f1f9ed.res"]
+
+[params]
+

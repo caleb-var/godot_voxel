@@ -1,0 +1,96 @@
+[gd_scene load_steps=14 format=3 uid="uid://bfko6engjcoqt"]
+
+[ext_resource type="Script" path="res://managers/main.gd" id="1_iv4x6"]
+[ext_resource type="Script" path="res://entities/player/player_controller.gd" id="2_lo8me"]
+[ext_resource type="Script" path="res://managers/ui.gd" id="3_14f1w"]
+[ext_resource type="Script" path="res://managers/debug.gd" id="3_042dx"]
+[ext_resource type="Script" path="res://managers/tick.gd" id="3_anqjj"]
+[ext_resource type="Script" path="res://managers/renderer.gd" id="4_6cg2w"]
+[ext_resource type="RDShaderFile" uid="uid://cxtshwqh4aq17" path="res://Living project/shaders/ray_cast_base_definition.glsl" id="5_g5yy7"]
+[ext_resource type="Script" path="res://managers/world.gd" id="5_vo3qt"]
+[ext_resource type="Script" path="res://managers/visualizer.gd" id="9_fl8o4"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_mjy3w"]
+
+[sub_resource type="Theme" id="Theme_cfhrt"]
+default_font_size = 10
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e387l"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_ejyub"]
+
+[node name="GameRoot" type="Node3D"]
+script = ExtResource("1_iv4x6")
+
+[node name="Tick" type="Node" parent="."]
+script = ExtResource("3_anqjj")
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("3_14f1w")
+
+[node name="VoxelDisplay" type="TextureRect" parent="UI"]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+texture = SubResource("PlaceholderTexture2D_mjy3w")
+
+[node name="Debug" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_cfhrt")
+script = ExtResource("3_042dx")
+
+[node name="TabContainer" type="TabContainer" parent="Debug"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 1
+offset_right = 200.0
+offset_bottom = 22.0
+current_tab = 0
+
+[node name="stats" type="VBoxContainer" parent="Debug/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="Player" type="Node3D" parent="."]
+script = ExtResource("2_lo8me")
+move_speed = 15.0
+
+[node name="Renderer" type="Node" parent="Player"]
+script = ExtResource("4_6cg2w")
+compute_shader = ExtResource("5_g5yy7")
+
+[node name="Camera3D" type="Camera3D" parent="Player"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.23373, 0, 15.3689)
+fov = 90.0
+
+[node name="World" type="Node3D" parent="."]
+script = ExtResource("5_vo3qt")
+
+[node name="Visualiser" type="Node3D" parent="World"]
+script = ExtResource("9_fl8o4")
+bounding_box_material = SubResource("StandardMaterial3D_e387l")
+level = -1
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -0.5, 0.5)
+mesh = SubResource("BoxMesh_ejyub")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 3.5, 3.5)
+mesh = SubResource("BoxMesh_ejyub")
+
+[node name="Node" type="Node" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.95064, 0.0461376, 0.306846, -0.310295, 0.14135, 0.940073, 0, -0.988884, 0.14869, 0, 0, 0)

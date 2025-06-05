@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://pspy5truc6r5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_5ygrf"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_i0jd6"]
+material = SubResource("StandardMaterial3D_5ygrf")
+
+[node name="VoxelObject" type="Node"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transparency = 0.5
+cast_shadow = 0
+mesh = SubResource("BoxMesh_i0jd6")

@@ -1,7 +1,10 @@
 {
     "files.associations": {
         "vector": "cpp",
-        "list": "cpp"
+        "list": "cpp",
+        "chrono": "cpp",
+        "system_error": "cpp",
+        "xlocale": "cpp"
     },
     "C_Cpp.dimInactiveRegions": false
 }
