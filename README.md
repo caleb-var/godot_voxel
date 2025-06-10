@@ -1,14 +1,13 @@
 Current progress:
 
-Porting TinyBVH plus modifying to work with Godot, callbacks and instances. Need to change TinyBVH library to support custom BLAS representation (uint32 index + count) for current ray tracing pipeline.
+two GDExtensions for tinybvh & flecs. Only flecs will proceed - tinybvh will be a flecs module.
 
-Porting Flecs + creating C++ singleton in the GDExtension C++ wrapper to track and maintain a packagebytearray for Godot compute shader with info header (tlas nodes -> instances -> objects (internal BVH) -> Parts -> blas data) and animation clip data for objects + blas
+Current pipeline for flecs entitys with transform components powering tinybvh TLAS with objects, instances & materials is function.
 
+-> Packed into a PackedByteArray for SSBO on compute shader using callbacks into the flecs component tables.
 
-Todo: After creating bvh & flecs GDExtenstion that ports into current compute shader handler port in:
+-> Support full camera buffer update + partial object buffer update using flecs to push updates through.
 
-cpp multi-thread job system for large scale simulation,
+Next step is moving tinybvh TLAS contruction & refit logic to flecs multi-threaded system. Then write custom BLAS definition to support multiple types of voxel storage by default. Starting with SVO brick 4x4x4 with 64 bit occupancy mask & cached ray-aabb intersection at the 4x4x4 grid, for lighting fast BLAS traversal.
 
-gd script modloader for cpp flecs modules & gdscript lightweight systems
-
-port current UI and debugging implementations
+Port systems in flecs pipeline to power TLAS (partially done) -> Instances -> Objects (Animation) -> VoxelParts (little objects) -> BLAS index & count of uint32 (Animation).
