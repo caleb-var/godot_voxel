@@ -1,0 +1,35 @@
+import os
+import sys
+
+env = SConscript("../../cpp/godot-cpp/SConstruct")
+env.Append(CPPPATH=["../src/"])
+env.Append(CPPPATH=["../modules/"])
+
+# 2.  Path to the one C file that defines all Flecs symbols
+FLECS_CORE = "../src/flecs.c"
+
+def add_sources(sources, dir, extension):
+    for f in os.listdir(dir):
+        if f.endswith("." + extension):
+            sources.append(dir + "/" + f)
+            
+sources = []
+add_sources(sources, "../src", "cpp")
+add_sources(sources, "../src", "c")
+
+module_srcs  = []
+add_sources(module_srcs, "../modules", "cpp")     # only .cpp requested
+module_libs = []
+for src in module_srcs:
+    base      = os.path.splitext(os.path.basename(src))[0]        # e.g. my_ai
+    out_path  = "../../addons/flecs/modules/lib{}{}".format(
+        base, env["SHLIBSUFFIX"]
+    )
+    mod_lib = env.SharedLibrary(
+        out_path,
+        source=[src,FLECS_CORE],
+    )
+    module_libs.append(mod_lib)
+
+# Optionally make them default targets too:
+Default(module_libs)

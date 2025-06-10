@@ -62,6 +62,7 @@ func add_stat(stat_name : String,
 				"interval" = interval,
 				"tick_counter" = 0,
 				"callable" = callable}
+	print("New stat: ",stat_name," from ", caller, ", every: ", interval, " ticks.")
 	var column : HBoxContainer = HBoxContainer.new()
 	column.name = stat_name
 	_stats.add_child(column)

@@ -3,13 +3,23 @@ import sys
 
 env = SConscript("../cpp/godot-cpp/SConstruct")
 env.Append(CPPPATH=["src/"])
-sources = Glob("src/*.cpp")
+env.Append(CPPPATH=["src/flecs/"])
+env.Append(CPPPATH=["src/tinybvh/"])
 
 
+def add_sources(sources, dir, extension):
+    for f in os.listdir(dir):
+        if f.endswith("." + extension):
+            sources.append(dir + "/" + f)
+            
+sources = []
+add_sources(sources, "src", "cpp")
+add_sources(sources, "src", "c")
+add_sources(sources, "src/flecs", "c")
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(
-        "../addons/flecs_gd/libflecs_extension.{}.{}.framework/libflecs_extension.{}.{}".format(
+        "../addons/flecs/libflecs_extension.{}.{}.framework/libflecs_extension.{}.{}".format(
             env["platform"], env["target"], env["platform"], env["target"]
         ),
         source=sources,
@@ -17,17 +27,17 @@ if env["platform"] == "macos":
 elif env["platform"] == "ios":
     if env["ios_simulator"]:
         library = env.StaticLibrary(
-            "../addons/flecs_gd/libflecs_extension.{}.{}.simulator.a".format(env["platform"], env["target"]),
+            "../addons/flecs/libflecs_extension.{}.{}.simulator.a".format(env["platform"], env["target"]),
             source=sources,
         )
     else:
         library = env.StaticLibrary(
-            "../addons/flecs_gd/libflecs_extension.{}.{}.a".format(env["platform"], env["target"]),
+            "../addons/flecs/libflecs_extension.{}.{}.a".format(env["platform"], env["target"]),
             source=sources,
         )
 else:
     library = env.SharedLibrary(
-        "../addons/flecs_gd/libflecs_extension{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+        "../addons/flecs/libflecs_extension{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
         source=sources,
     )
 

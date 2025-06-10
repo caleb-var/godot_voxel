@@ -131,19 +131,6 @@ bool get_bit(uint value, uint index){
     return ((value >> index) & 1) != 0;
 }
 
-SVO get_svo_object(uint index){
-    SVO svo;
-    uint base_index = index * 8;
-    svo.meta = object_data[base_index];
-    svo.node_offset=object_data[base_index+1];
-    svo.voxel_offset=object_data[base_index+2];
-    svo.occupancy_mask_lower=object_data[base_index+3];
-    svo.occupancy_mask_upper=object_data[base_index+4];
-
-    svo.box.min = vec3(object_data[base_index+5] & 0xFFFF,(object_data[base_index+5] >> 16)& 0xFFFF,object_data[base_index+6] & 0xFFFF) / 32767.0*4.0;
-    svo.box.max = vec3((object_data[base_index+6]>>16) & 0xFFFF,object_data[base_index+7]& 0xFFFF,(object_data[base_index+7] >> 16) & 0xFFFF) / 32767.0*4.0;
-    return svo;
-}
 bool is_occupied(uint lower, uint upper, uint index) {
     if (index >= 64) return false; // Out of range check
 
@@ -154,7 +141,7 @@ bool is_occupied(uint lower, uint upper, uint index) {
 
 TLASNode get_tlasnode(uint node_index) {
     TLASNode node;
-    uint base_index = Meta.tlas_offset + (node_index*8);
+    uint base_index = Meta.tlas_offset/4 + (node_index*8);
     node.aabbMin = vec3(
         uintBitsToFloat(object_data[base_index]),
         uintBitsToFloat(object_data[base_index + 1]),
@@ -173,7 +160,7 @@ TLASNode get_tlasnode(uint node_index) {
 
 Instance get_instance(uint instance_index) {
     Instance instance;
-    uint base_index = Meta.instances_offset + (instance_index*36);
+    uint base_index = Meta.instances_offset/4 + (instance_index*36);
     instance.object_transform = get_mat4_from_object_data(base_index);
     instance.inv_object_transform = get_mat4_from_object_data(base_index + 16);
     instance.object_offset = object_data[base_index + 32];

@@ -1,6 +1,7 @@
 class_name Renderer extends Manager
 
 @onready var player = $".."
+@onready var world = $"../../World"
 
 @export var compute_shader: RDShaderFile
 
@@ -52,7 +53,7 @@ func _create_uniforms():
 	object_uniform.add_id(object_buffer)
 func _create_object_buffer(object_data = PackedByteArray([])):
 	object_data = player._get_object_buffer_data()
-	#print("		ObjectMeta de-serialize: ", ObjectMeta.new().deserialize(object_data))
+	object_meta = ObjectMeta.new()._deserialize(object_data)
 	object_buffer = rd.storage_buffer_create(object_data.size(), object_data)
 func _create_camera_buffer():
 	var camera_data = transform_to_bytes(player.get_my_transform())
@@ -83,9 +84,7 @@ func _create_output_texture():
 
 func _process(_delta):
 	_update_camera_buffer()
-	if voxel_data_dirty:
-		_update_object_buffer()
-		voxel_data_dirty = false
+	_update_TLAS_bufer(world.serialize_TLAS())
 	
 	_dispatch_compute_shader()
 	_retrieve_output_texture()
@@ -114,8 +113,8 @@ func _update_object_buffer():
 	object_buffer = rd.storage_buffer_create(object_data.size(), object_data)
 	rd.buffer_update(object_buffer,0,object_data.size(),object_data)
 
-func _update_TLAS_bufer():
-	rd.buffer_update(object_buffer,object_meta.TLAS_offset*4,0,PackedByteArray())
+func _update_TLAS_bufer(data : PackedByteArray):
+	rd.buffer_update(object_buffer,object_meta.TLAS_offset + object_meta.META_SIZE,data.size(),data)
 
 func _update_instance_transform(index: int,data : PackedByteArray):
 	rd.buffer_update(object_buffer,index,data.size(),data)

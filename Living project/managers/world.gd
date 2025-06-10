@@ -1,9 +1,9 @@
 class_name World extends Manager
 
-@onready var visualiser = $Visualiser
+@onready var debug = $"../Debug"
 
 var object_meta : ObjectMeta = ObjectMeta.new()
-
+var flecs := FlecsGD.new()
 var bvhTLAS		: BVHTLAS = BVHTLAS.new()
 
 var TLAS		: Array[BVHNode] = []
@@ -14,8 +14,7 @@ var instances 	: Array[Instance] = []
 var packed_instances
 
 func _init() -> void:
-	return
-
+	pass
 func create_test() -> PackedByteArray:
 	seed(11)
 
@@ -27,7 +26,7 @@ func create_test() -> PackedByteArray:
 	test_object.voxel_data = svo_root
 	svo_root.update_aabb("force")
 	add_object(test_object)
-	for test in range(100000):
+	for test in range(100):
 		var test_instance = Instance.new(objects[0],Vector3(randf()*100.0,randf()*100.0,randf()*100.0))
 		add_instance(test_instance)
 		
@@ -79,67 +78,22 @@ Returns: { data: PackedByteArray, object_meta: ObjectMeta }
 func full_serialize() -> PackedByteArray:
 	var packed = PackedByteArray()
 	
-	print("TLAS Nodes: ",TLAS.size())
 	print("Instances: ",instances.size())
 	print("Objects: ",objects.size())
 	
 	packed.append_array(serialize_objects())
-	object_meta.TLAS_offset = (packed.size() / 4)
+	object_meta.TLAS_offset = (packed.size())
 	packed.append_array(serialize_TLAS())
-	object_meta.instances_offset = (packed.size() / 4)
+	object_meta.instances_offset = (packed.size())
 	packed.append_array(serialize_instances())
 	print(object_meta)
 	
 	packed = object_meta._serialize() + packed
 	return packed
-	
-## Utility: dump a PackedByteArray that stores TinyBVH TLAS nodes
-## Usage:
-##     var nodes = tlas.to_gpu_bvh()
-##     print_tlas_nodes(nodes)
-
-const NODE_BYTES := 32           # 8 × u32
-
-func print_tlas_nodes(raw: PackedByteArray) -> void:
-	if raw.is_empty():
-		push_error("print_tlas_nodes: buffer is empty")
-		return
-
-	var node_count := raw.size() / NODE_BYTES
-	var db := StreamPeerBuffer.new()
-	db.data_array = raw
-	db.big_endian = false        # TinyBVH writes little-endian
-
-	print("\nIdx |      Min (x y z)      |      Max (x y z)      | leftFirst | triCount | type")
-	print("----+-----------------------+-----------------------+-----------+----------+------")
-
-	for i in node_count:
-
-		var base := i * NODE_BYTES
-		db.seek(base)
-
-		var min_x := db.get_float()          # u32→f32
-		var min_y := db.get_float()
-		var min_z := db.get_float()
-		var left  := db.get_u32()
-
-		var max_x := db.get_float()
-		var max_y := db.get_float()
-		var max_z := db.get_float()
-		var tris  := db.get_u32()
-
-		var node_type := "int" if tris == 0 else "leaf"
-
-		print("%3d | %6.2f %6.2f %6.2f | %6.2f %6.2f %6.2f | %9d | %8d | %s"
-			  % [i, min_x, min_y, min_z, max_x, max_y, max_z, left, tris, node_type])
 
 	
-func serialize_TLAS() -> PackedByteArray:
-	#var packed_tlas = PackedByteArray()
-	#packed_instances = PackedByteArray()
-	#TLAS[0]._serialize_TLAS(packed_tlas,packed_instances)
-	
-	var bvh_packed = bvhTLAS.to_gpu_bvh()
+func serialize_TLAS() -> PackedByteArray:	
+	var bvh_packed = flecs.to_gpu_bvh()
 	return bvh_packed
 	
 func serialize_objects() -> PackedByteArray:
@@ -166,3 +120,8 @@ func serialize_instances() -> PackedByteArray:
 	for instance in instances:
 		_packed_instances.append_array(instance._serialize())
 	return _packed_instances
+
+
+func _on_tick(delta):
+	flecs.progress(delta)
+	$"../Player/Renderer".voxel_data_dirty = true

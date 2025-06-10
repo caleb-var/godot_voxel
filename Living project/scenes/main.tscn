@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://bfko6engjcoqt"]
+[gd_scene load_steps=12 format=3 uid="uid://bfko6engjcoqt"]
 
 [ext_resource type="Script" uid="uid://dxv5kinubtha7" path="res://Living project/managers/main.gd" id="1_gfvmj"]
 [ext_resource type="Script" uid="uid://c8n7yptiskgw6" path="res://Living project/managers/tick.gd" id="2_6wy0y"]
@@ -8,14 +8,11 @@
 [ext_resource type="Script" uid="uid://cc2g2hd83v1sr" path="res://Living project/managers/renderer.gd" id="6_bsm7u"]
 [ext_resource type="RDShaderFile" uid="uid://cxtshwqh4aq17" path="res://Living project/shaders/ray_cast_base_definition.glsl" id="7_d218i"]
 [ext_resource type="Script" uid="uid://cjij03s0t1lqr" path="res://Living project/managers/world.gd" id="8_erb6n"]
-[ext_resource type="Script" uid="uid://bpmq2dbb0nioy" path="res://Living project/managers/visualizer.gd" id="9_kdiin"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_mjy3w"]
 
 [sub_resource type="Theme" id="Theme_cfhrt"]
 default_font_size = 10
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e387l"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_ejyub"]
 
@@ -76,11 +73,6 @@ fov = 90.0
 [node name="World" type="Node3D" parent="."]
 script = ExtResource("8_erb6n")
 
-[node name="Visualiser" type="Node3D" parent="World"]
-script = ExtResource("9_kdiin")
-bounding_box_material = SubResource("StandardMaterial3D_e387l")
-level = -1
-
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -0.5, 0.5)
 mesh = SubResource("BoxMesh_ejyub")
@@ -93,3 +85,5 @@ mesh = SubResource("BoxMesh_ejyub")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.95064, 0.0461376, 0.306846, -0.310295, 0.14135, 0.940073, 0, -0.988884, 0.14869, 0, 0, 0)
+
+[connection signal="tick" from="Tick" to="World" method="_on_tick"]

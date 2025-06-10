@@ -4,7 +4,10 @@
         "list": "cpp",
         "chrono": "cpp",
         "system_error": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "*.voxel": "cpp",
+        "random": "cpp",
+        "thread": "cpp"
     },
     "C_Cpp.dimInactiveRegions": false
 }
