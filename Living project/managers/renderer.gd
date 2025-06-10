@@ -21,7 +21,7 @@ var object_uniform : RDUniform
 var camera_uniform : RDUniform
 var output_uniform : RDUniform
 
-
+var object_data: PackedByteArray
 var voxel_data_dirty = false
 var camera_data_dirty = true
 
@@ -51,7 +51,7 @@ func _create_uniforms():
 	object_uniform.uniform_type = RenderingDevice.UNIFORM_TYPE_STORAGE_BUFFER
 	object_uniform.binding = 0
 	object_uniform.add_id(object_buffer)
-func _create_object_buffer(object_data = PackedByteArray([])):
+func _create_object_buffer():
 	object_data = player._get_object_buffer_data()
 	object_meta = ObjectMeta.new()._deserialize(object_data)
 	object_buffer = rd.storage_buffer_create(object_data.size(), object_data)
@@ -83,6 +83,8 @@ func _create_output_texture():
 """ Runtime functions! """
 
 func _process(_delta):
+	rd.submit()
+	rd.sync()
 	_update_camera_buffer()
 	_update_TLAS_bufer(world.serialize_TLAS())
 	
@@ -100,21 +102,17 @@ func _dispatch_compute_shader():
 	
 	rd.compute_list_dispatch(compute_list, window_size.x/16, window_size.y/16, 1)
 	rd.compute_list_end()
-	rd.submit()
-	rd.sync()
 func _update_camera_buffer():
 	var camera_data = transform_to_bytes(player.get_my_transform())
 	rd.buffer_update(camera_buffer,0,camera_data.size(),camera_data)
-	
-
-func _update_object_buffer():
-	push_warning("why we updating object buffer")
-	var object_data = player.get_object_data()
-	object_buffer = rd.storage_buffer_create(object_data.size(), object_data)
-	rd.buffer_update(object_buffer,0,object_data.size(),object_data)
 
 func _update_TLAS_bufer(data : PackedByteArray):
-	rd.buffer_update(object_buffer,object_meta.TLAS_offset + object_meta.META_SIZE,data.size(),data)
+	var packed =(object_data.slice(0,object_meta.META_SIZE + object_meta.TLAS_offset)
+			+data
+			+object_data.slice(object_meta.META_SIZE + object_meta.instances_offset))
+	object_buffer = rd.storage_buffer_create(packed.size(),packed)
+	object_uniform.clear_ids()
+	object_uniform.add_id(object_buffer)
 
 func _update_instance_transform(index: int,data : PackedByteArray):
 	rd.buffer_update(object_buffer,index,data.size(),data)

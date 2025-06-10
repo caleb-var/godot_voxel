@@ -11,11 +11,14 @@ var objects 	: Array[VoxelObject] = []
 var object_count: int = 0
 var next_index 	: int = 0
 var instances 	: Array[Instance] = []
+var instance_count = 0
 var packed_instances
 
-func _init() -> void:
-	pass
+func _get_instance_count() -> String:
+	return str(instance_count)
+
 func create_test() -> PackedByteArray:
+	debug._register_debug_stat("Instances","0",_get_instance_count,0)
 	seed(11)
 
 	var test_object = VoxelObject.new()
@@ -124,4 +127,6 @@ func serialize_instances() -> PackedByteArray:
 
 func _on_tick(delta):
 	flecs.progress(delta)
+	flecs.bulk_create(10,"base")
+	instance_count+=1000
 	$"../Player/Renderer".voxel_data_dirty = true

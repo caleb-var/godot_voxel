@@ -8,7 +8,7 @@ extends Node3D
 
 @export_category("Control settings")
 @export var vertical_limit: float = 89.0  # Limit vertical rotation to avoid flipping
-@export var move_speed: float = 10.0
+@export var move_speed: float = 200.0
 @export var mouse_sensitivity: float = 0.2
 
 var mouse_enabled: bool = true

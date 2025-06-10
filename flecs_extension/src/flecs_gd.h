@@ -27,6 +27,8 @@ public:
     void set_threads(int32_t thread_count);
     void progress(double delta);
 
+    void bulk_create(int count, String prefab_name);
+
     bool load_module(const String &path, const String &file);
     bool load_script(const String &path, const String &file);
 

@@ -6,7 +6,11 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/random_number_generator.hpp>
 #include <tiny_bvh.h>
+#include <random>
+std::mt19937 rng(std::random_device{}());
+std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
 
 #include <module.voxel.h>
 
@@ -14,21 +18,14 @@ using namespace godot;
 using namespace module_voxel;
 using tinybvh::bvhvec3;
 
+
 FlecsGD::FlecsGD(){
     TLAS = tinybvh::BVH();
     TLAS.user_ptr = this;
     world = flecs::world();
     world.import<VoxelModule>();
-    flecs::entity base = world.prefab("base").set(Position{10,10,10});
+    flecs::entity base = world.prefab("base").set(Position{0,0,0}).set(Velocity{0,0,0});
     instance_index = base.id();
-    flecs::entity instance_4 = world.entity().is_a(base).set(Position{10,10,8}).set(Velocity{0,-0.1,0});
-    flecs::entity instance_5 = world.entity().is_a(base).set(Position{10,10,8}).set(Velocity{0,0.1,0});
-    flecs::entity instance_6 = world.entity().is_a(base).set(Position{10,10,8}).set(Velocity{0.1,-0.1,0});
-    flecs::entity instance_7 = world.entity().is_a(base).set(Position{10,10,8}).set(Velocity{0,-0.1,0.1});
-    flecs::entity instance_8 = world.entity().is_a(base).set(Position{10,10,8}).set(Velocity{0.1,0.1,0});
-    flecs::entity instance_9 = world.entity().is_a(base).set(Position{10,10,8}).set(Velocity{0.1,0,0.1});
-    flecs::entity instance_10 = world.entity().is_a(base).set(Position{10,10,8}).set(Velocity{0,0,-0.1});
-    flecs::entity instance_11 = world.entity().is_a(base).set(Position{10,10,8}).set(Velocity{-0.1,0,0});
     TLAS.Build(get_aabb_callback,world.count(world.component<Position>()));
 }
 FlecsGD::~FlecsGD(){}
@@ -39,6 +36,7 @@ void FlecsGD::_bind_methods() {
     ClassDB::bind_method(D_METHOD("load_module", "lib_path", "module_symbol"),&FlecsGD::load_module);
     ClassDB::bind_method(D_METHOD("load_script", "fecs_path"),&FlecsGD::load_script);
     ClassDB::bind_method(D_METHOD("to_gpu_bvh"),&FlecsGD::to_gpu_bvh);
+    ClassDB::bind_method(D_METHOD("bulk_create","count","prefab_name"),&FlecsGD::bulk_create);
 }
 void FlecsGD::get_aabb_callback(unsigned idx,
                         bvhvec3& out_min,
@@ -58,6 +56,11 @@ void FlecsGD::set_threads(int32_t n) {
 void FlecsGD::progress(double dt) {
     world.progress(static_cast<float>(dt));
     TLAS.Build(get_aabb_callback,world.count(world.component<Position>()));
+}
+void FlecsGD::bulk_create(int count, String prefab_name){
+    for (int i = 0; i < count; i++) {
+        flecs::entity e = world.entity().set(Position{0,0,0}).set(Velocity{dist(rng),dist(rng),dist(rng)});
+    }
 }
 
 bool FlecsGD::load_module(const String &path, const String &module) {

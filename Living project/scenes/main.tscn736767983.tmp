@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bfko6engjcoqt"]
+[gd_scene load_steps=12 format=3 uid="uid://bfko6engjcoqt"]
 
 [ext_resource type="Script" uid="uid://dxv5kinubtha7" path="res://Living project/managers/main.gd" id="1_gfvmj"]
 [ext_resource type="Script" uid="uid://c8n7yptiskgw6" path="res://Living project/managers/tick.gd" id="2_6wy0y"]
@@ -13,6 +13,8 @@
 
 [sub_resource type="Theme" id="Theme_cfhrt"]
 default_font_size = 10
+
+[sub_resource type="BoxMesh" id="BoxMesh_ejyub"]
 
 [node name="GameRoot" type="Node3D"]
 script = ExtResource("1_gfvmj")
@@ -70,5 +72,18 @@ fov = 90.0
 
 [node name="World" type="Node3D" parent="."]
 script = ExtResource("8_erb6n")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -0.5, 0.5)
+mesh = SubResource("BoxMesh_ejyub")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 3.5, 3.5)
+mesh = SubResource("BoxMesh_ejyub")
+
+[node name="Node" type="Node" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.95064, 0.0461376, 0.306846, -0.310295, 0.14135, 0.940073, 0, -0.988884, 0.14869, 0, 0, 0)
 
 [connection signal="tick" from="Tick" to="World" method="_on_tick"]
